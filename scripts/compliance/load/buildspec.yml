@@ -7,8 +7,9 @@ phases:
       - docker pull loadimpact/k6
   build:
     commands:
-      - echo Run Load test
+      - echo Run performance test
+      - cd scripts/compliance/endurance  # Mude para o diretório correto
       - docker run -i loadimpact/k6 run - <test.js
   post_build:
     commands:
-      - echo Load test complete
+      - echo Performance test complete
