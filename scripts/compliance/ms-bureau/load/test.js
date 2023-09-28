@@ -1,16 +1,24 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
 export const options = {
     stages: [
         { duration: '10s', target: 100 },
-        { duration: '1m', target: 100 }, 
+        { duration: '10s', target: 100 }, 
         { duration: '10s', target: 0 }, 
     ],
 
     thresholds: {
         http_req_failed: ['rate < 0.01'],
-       // http_req_duration: ['p(95) < 250']
+        http_req_duration: ['p(95) < 250']
+    },
+    ext: {
+        loadimpact: {
+        projectID: 3659396,
+        name: 'qa chapter'
+        }
     }
 }
 
@@ -36,19 +44,20 @@ export default function(token){
         }
     }
     const res = http.get(`${BASE_URL}/my/crocodiles`, params);
-    check(res, {
-        'status code 400': (r) => r.status === 400,
-        'status code 401': (r) => r.status === 401,
-        'status code 500': (r) => r.status === 500,
-        'status code 501': (r) => r.status === 501,
-        'status code 502': (r) => r.status === 502,
-        'status code 503': (r) => r.status === 503,
-        'status code 504': (r) => r.status === 504,                
-    });
+
     const checkResult = check(res, {
         'status code 200': (r) => r.status === 200,
     });
     if (!checkResult) {
         console.error(`Erro na requisição: ${res.status}`);
     }
+}
+
+
+
+export function handleSummary(data) {
+  return {
+    "result.html": htmlReport(data),
+    stdout: textSummary(data, { indent: " ", enableColors: true }),
+  };
 }
